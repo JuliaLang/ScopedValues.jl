@@ -18,8 +18,10 @@ function enter_scope(f, scope)
 end
 
 # Forward actual logging interface:
-Logging.handle_message(payload::ScopePayloadLogger, args...; kwargs...) =
-    Logging.handle_message(payload.logger, args...; kwargs...)
+function Logging.handle_message(payload::ScopePayloadLogger, args...; kwargs...)
+    @nospecialize
+    return Logging.handle_message(payload.logger, args...; kwargs...)
+end
 Logging.shouldlog(payload::ScopePayloadLogger, args...) =
     Logging.shouldlog(payload.logger, args...)
 Logging.min_enabled_level(payload::ScopePayloadLogger, args...) =
