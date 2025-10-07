@@ -1,6 +1,6 @@
 module ScopedValues
 
-export ScopedValue, with, @with, ScopedFunctor
+export ScopedValue, with, @with, ScopedThunk
 
 if isdefined(Base, :ScopedValues)
 
@@ -241,21 +241,22 @@ include("payloadlogger.jl")
 end # isdefined
 
 """
-    ScopedFunctor(f)
+    ScopedThunk(f)
 
-Create a functor that records the current dynamic scope, i.e. all current
-`ScopedValue`s, along with `f`. When the functor is invoked, it runs `f`
+Create a callable that records the current dynamic scope, i.e. all current
+`ScopedValue`s, along with `f`. When the callable is invoked, it runs `f`
 in the recorded dynamic scope.
 """
-struct ScopedFunctor{F}
+struct ScopedThunk{F}
     f::F
     scope::Union{Nothing, Scope}
 
-    ScopedFunctor{F}(f) where {F} = new{F}(f, current_scope())
+    ScopedThunk{F}(f) where {F} = new{F}(f, current_scope())
 end
-ScopedFunctor(f) = ScopedFunctor{typeof(f)}(f)
-(sf::ScopedFunctor)() = @enter_scope sf.scope sf.f()
+ScopedThunk(f) = ScopedThunk{typeof(f)}(f)
+(sf::ScopedThunk)() = @enter_scope sf.scope sf.f()
 
 @deprecate scoped with
+@deprecate ScopedFunctor ScopedThunk
 
 end # module ScopedValues
