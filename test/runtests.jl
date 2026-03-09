@@ -1,5 +1,6 @@
-using Test
+using Logging: Logging
 using ScopedValues
+using Test
 
 @testset "errors" begin
     @test ScopedValue{Float64}(1)[] == 1.0
@@ -144,4 +145,36 @@ end
         sf2 = ScopedFunctor{Function}(check_svals)
     end
     sf2()
+end
+
+@testset "logging" begin
+    test_logger = TestLogger()
+    sval = ScopedValue(1)
+    with(sval => 2) do
+        if isdefined(Base, :ScopedValues)
+            @test ScopedValues.current_logger() === Logging.current_logger()
+        else
+            @test Logging.current_logger() isa ScopedValues.ScopePayloadLogger
+            @test ScopedValues.current_logger() === Logging.current_logger().logger
+        end
+
+        ScopedValues.with_logger(test_logger) do
+            @test sval[] == 2
+            @test ScopedValues.current_logger() === test_logger
+
+            if isdefined(Base, :ScopedValues)
+                @test Logging.current_logger() === test_logger
+            else
+                @test Logging.current_logger() isa ScopedValues.ScopePayloadLogger
+                @test Logging.current_logger().logger === test_logger
+            end
+
+            @info "test"
+        end
+
+        @test length(test_logger.logs) == 1
+        log = test_logger.logs[1]
+        @test log.level == Logging.Info
+        @test log.message == "test"
+    end
 end

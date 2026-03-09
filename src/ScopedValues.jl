@@ -7,6 +7,10 @@ if isdefined(Base, :ScopedValues)
 import Base.ScopedValues: ScopedValue, with, @with, Scope, get
 import Core: current_scope
 
+# Allow users to consistently use `ScopedValues.current_logger` and
+# `ScopedValues.with_logger` on Julia 1.11+
+using Logging: current_logger, with_logger
+
 macro enter_scope(scope, expr)
     Expr(:tryfinally, esc(expr), nothing, :(Scope($(esc(scope))::Union{Nothing, Scope})))
 end
