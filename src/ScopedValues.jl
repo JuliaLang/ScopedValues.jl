@@ -66,9 +66,14 @@ Base.eltype(::ScopedValue{T}) where {T} = T
 """
     isassigned(val::ScopedValue)
 
-Test if the ScopedValue has a default value.
+Test if the ScopedValue has an assigned value.
 """
-Base.isassigned(val::ScopedValue) = val.has_default
+function Base.isassigned(val::ScopedValue)
+    val.has_default && return true
+    scope = current_scope()::Union{Scope, Nothing}
+    scope === nothing && return false
+    return haskey((scope::Scope).values, val)
+end
 
 const ScopeStorage = HAMT{ScopedValue, Any}
 
