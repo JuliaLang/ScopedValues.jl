@@ -131,6 +131,13 @@ end
     @test ret == 1.23
 end
 
+const sval_uninitialized = ScopedValue{Int}()
+
+@testset "isassigned()" begin
+    @test !isassigned(sval_uninitialized)
+    @with sval_uninitialized => 42 @test isassigned(sval_uninitialized)
+end
+
 @testset "ScopedThunk" begin
     function check_svals()
         @test sval[] == 8
