@@ -128,18 +128,18 @@ return `nothing`. Otherwise returns `Some{T}` with the current
 value.
 """
 function get(val::ScopedValue{T}) where {T}
-    # Inline current_scope to avoid doing the type assertion twice.
     scope = current_scope()
     if scope === nothing
-        isassigned(val) && return Some(val.default)
-        return nothing
+        val.has_default || return nothing
+        return Some{T}(val.default)
     end
     scope = scope::Scope
-    if isassigned(val)
-        return Some(Base.get(scope.values, val, val.default)::T)
+    if val.has_default
+        return Some{T}(Base.get(scope.values, val, val.default)::T)
     else
         v = Base.get(scope.values, val, novalue)
-        v === novalue || return Some(v::T)
+        v === novalue && return nothing
+        return Some{T}(v::T)
     end
     return nothing
 end

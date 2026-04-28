@@ -138,6 +138,23 @@ const sval_uninitialized = ScopedValue{Int}()
     @with sval_uninitialized => 42 @test isassigned(sval_uninitialized)
 end
 
+@testset "abstract type" begin
+    # Regression test for issue #34: ScopedValue with abstract type parameter
+    abstract_val = ScopedValue{Integer}()
+    @test ScopedValues.get(abstract_val) === nothing
+    @with abstract_val => 3 begin
+        @test ScopedValues.get(abstract_val) == Some{Integer}(3)
+        @test abstract_val[] == 3
+    end
+    @test ScopedValues.get(abstract_val) === nothing
+
+    abstract_with_default = ScopedValue{Integer}(42)
+    @test ScopedValues.get(abstract_with_default) == Some{Integer}(42)
+    @with abstract_with_default => 3 begin
+        @test ScopedValues.get(abstract_with_default) == Some{Integer}(3)
+    end
+end
+
 @testset "ScopedThunk" begin
     function check_svals()
         @test sval[] == 8
