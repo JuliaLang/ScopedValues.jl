@@ -262,6 +262,6 @@ ScopedThunk(f) = ScopedThunk{typeof(f)}(f)
 (sf::ScopedThunk)() = @enter_scope sf.scope sf.f()
 
 @deprecate scoped with
-@deprecate ScopedFunctor ScopedThunk
+Base.@deprecate_binding ScopedFunctor ScopedThunk
 
 end # module ScopedValues
