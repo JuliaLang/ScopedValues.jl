@@ -68,14 +68,21 @@ import Base.Threads: @spawn
 end
 
 @testset "show" begin
-    @test sprint(show, ScopedValue{Int}()) == "ScopedValue{$Int}(undefined)"
+    # Julia 1.13 prints an unset value as valid code and stores the testset in a scoped value
+    if VERSION >= v"1.13.0-"
+        @test sprint(show, ScopedValue{Int}()) == "ScopedValue{$Int}()"
+    else
+        @test sprint(show, ScopedValue{Int}()) == "ScopedValue{$Int}(undefined)"
+        @test sprint(show, ScopedValues.current_scope()) == "nothing"
+    end
     @test sprint(show, sval) == "ScopedValue{$Int}(1)"
-    @test sprint(show, ScopedValues.current_scope()) == "nothing"
     with(sval => 2.0) do
         @test sprint(show, sval) == "ScopedValue{$Int}(2)"
         objid = sprint(show, Base.objectid(sval))
+        str = sprint(show, ScopedValues.current_scope())
         # Interpolate to handle `Base.ScopedValues.Scope` vs `ScopedValues.scope`
-        @test sprint(show, ScopedValues.current_scope()) == "$(ScopedValues.Scope)(ScopedValue{$Int}@$objid => 2)"
+        @test startswith(str, "$(ScopedValues.Scope)(")
+        @test occursin("ScopedValue{$Int}@$objid => 2", str)
     end
 end
 
